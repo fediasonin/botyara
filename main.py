@@ -17,14 +17,18 @@ SMTP_PORT = creds["smtp_port"]
 SENDER_LOGIN = creds["sender_login"]
 SENDER_EMAIL = creds["sender_email"]
 SENDER_PASSWORD = creds["sender_password"]
-TARGET_CHAT_ID = "-4019202782"
+TARGET_CHAT_ID = "-2443081137"
 TARGET_THREAD_ID = 3
 PATTERN = r"""
-    Имя\sпользователя:\s(?P<username>\w+)\s*
+    Имя\sпользователя:\s(?P<username>[\w\.]+)\s*
     Исходящий\sIP\sадрес:\s(?P<ip>\d+\.\d+\.\d+\.\d+)\s*
     ВПН\sточка\sвхода:\s(?P<vpn>[^\n]+)
 """
-EMAIL_REGEX = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+EMAIL_REGEX = r"^[a-zA-Z0-9._+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+
+
+def ip_formatter(ip_address):
+    return re.sub(r'\.(?=[0-9]+$)', '[.]', ip_address)
 
 
 def ip_in_list(src_ip, ip_list):
@@ -142,9 +146,16 @@ async def parse_message(update: Update, context):
             return
         try:
             email_body = (
-                f"Добрый день, под вашей учетной записью (логин, указанный при входе: {username}) "
-                f"превышено число неудачных попыток подключения с IP {ip_address} к VPN шлюзу {shluz}, "
-                "поэтому данный IP был заблокирован. Для разблокировки смените пароль в личном кабинете и оставьте заявку в support.mosreg.ru."
+                f"Добрый день, превышено число неудачных попыток подключения учетной записи {username} с IP {ip_formatter(ip_address)} к VPN шлюзу {shluz}, "
+                "поэтому данный IP был заблокирован. Для разблокировки необходимо: "
+                "1. Сменить пароль от учётной записи на pass.mosreg.ru"
+                "2. Провести полную антивирусную проверку рабочего хоста. "
+                "3. Если нет САЗ, установить его и провести полную проверку. "
+                "4. Написать заявку в support.mosreg.ru с приложением скриншота результатов проверки, содержащего: "
+                "   - Результаты проверки. "
+                "   - Время проверки. "
+                "   - IP-адрес хоста. "
+                f"5. Указать IP-адрес, который необходимо разблокировать."
             )
             send_email(email, subject, email_body)
             await update.message.reply_text(f"Сообщение отправлено на {email}.")
