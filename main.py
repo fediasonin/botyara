@@ -17,7 +17,8 @@ SMTP_PORT = creds["smtp_port"]
 SENDER_LOGIN = creds["sender_login"]
 SENDER_EMAIL = creds["sender_email"]
 SENDER_PASSWORD = creds["sender_password"]
-TARGET_CHAT_ID = "-2443081137"
+TARGET_CHAT_ID = creds["target_chat_id"]
+MAIN_CHAT_ID = creds["main_chat_id"]
 TARGET_THREAD_ID = 3
 PATTERN = r"""
     Имя\sпользователя:\s(?P<username>[\w\.]+)\s*
@@ -146,9 +147,9 @@ async def parse_message(update: Update, context):
             return
         try:
             email_body = (
-                f"Добрый день, превышено число неудачных попыток подключения учетной записи {username} с IP {ip_formatter(ip_address)} к VPN шлюзу {shluz}, "
+                f"Добрый день, средствами мониторинга зафиксировано превышение числа неудачных попыток подключения учетной записи {username} с IP адреса {ip_formatter(ip_address)} к VPN шлюзу {shluz}, "
                 "поэтому данный IP был заблокирован. Для разблокировки необходимо: "
-                "1. Сменить пароль от учётной записи на pass.mosreg.ru"
+                f"1. Сменить пароль от учётной записи {username} на pass.mosreg.ru"
                 "2. Провести полную антивирусную проверку рабочего хоста. "
                 "3. Если нет САЗ, установить его и провести полную проверку. "
                 "4. Написать заявку в support.mosreg.ru с приложением скриншота результатов проверки, содержащего: "
@@ -157,18 +158,27 @@ async def parse_message(update: Update, context):
                 "   - IP-адрес хоста. "
                 f"5. Указать IP-адрес, который необходимо разблокировать."
             )
+
             send_email(email, subject, email_body)
-            await update.message.reply_text(f"Сообщение отправлено на {email}.")
+            send_status = f"Сообщение успешно отправлено на {email}."
             await send_telegram_notification(context, ip_address)
         except Exception as e:
-            await update.message.reply_text(f"Не удалось отправить сообщение на {email}. Ошибка: {str(e)}")
+            send_status = f"Не удалось отправить сообщение на {email}. Ошибка: {str(e)}"
+
+        await update.message.reply_text(send_status)
     else:
         await update.message.reply_text("Не удалось распознать сообщение. Проверьте формат.")
+
+
+async def get_chat_id(update: Update, context):
+    chat_id = update.message.chat_id
+    await update.message.reply_text(f"Ваш chat ID: {chat_id}")
 
 
 def main():
     app = ApplicationBuilder().token("7464199250:AAHuudpzjsRuyryhNXntmCR8TV_umM2JzMI").build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("getchatid", get_chat_id))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, parse_message))
 
     app.run_polling()
