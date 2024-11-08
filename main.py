@@ -146,6 +146,11 @@ async def parse_message(update: Update, context):
             await update.message.reply_text(f"Невалидный email: {error_message}")
             return
         try:
+            # Приоритетное уведомление в Telegram
+            await send_telegram_notification(context, ip_address)
+            send_status = f"Уведомление отправлено в Telegram для IP {ip_address}."
+
+            # Попытка отправить почту
             email_body = (
                 f"Добрый день, средствами мониторинга зафиксировано превышение числа неудачных попыток подключения учетной записи {username} с IP адреса {ip_formatter(ip_address)} к VPN шлюзу {shluz}, "
                 "поэтому данный IP был заблокирован. Для разблокировки необходимо: "
@@ -160,10 +165,9 @@ async def parse_message(update: Update, context):
             )
 
             send_email(email, subject, email_body)
-            send_status = f"Сообщение успешно отправлено на {email}."
-            await send_telegram_notification(context, ip_address)
+            send_status += f"\nСообщение также отправлено на {email}."
         except Exception as e:
-            send_status = f"Не удалось отправить сообщение на {email}. Ошибка: {str(e)}"
+            send_status += f"\nНе удалось отправить сообщение на {email}. Ошибка: {str(e)}"
 
         await update.message.reply_text(send_status)
     else:
