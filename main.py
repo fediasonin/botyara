@@ -19,6 +19,7 @@ SENDER_EMAIL = creds["sender_email"]
 SENDER_PASSWORD = creds["sender_password"]
 TARGET_CHAT_ID = creds["target_chat_id"]
 MAIN_CHAT_ID = creds["main_chat_id"]
+API_TOKEN = creds["api_token"]
 TARGET_THREAD_ID = 3
 PATTERN = r"""
     Имя\sпользователя:\s(?P<username>[\w\.]+)\s*
@@ -122,7 +123,7 @@ async def parse_message(update: Update, context):
     thread_id = update.message.message_thread_id
     if chat_id == TARGET_CHAT_ID:
         return
-    if chat_id == TARGET_CHAT_ID or thread_id != TARGET_THREAD_ID:
+    if thread_id != TARGET_THREAD_ID and chat_id != MAIN_CHAT_ID:
         return
 
     subject = "Попытки подбора пароля"
@@ -178,11 +179,15 @@ async def get_chat_id(update: Update, context):
     chat_id = update.message.chat_id
     await update.message.reply_text(f"Ваш chat ID: {chat_id}")
 
+async def get_thread_id(update: Update, context):
+    thread_id = update.message.message_thread_id
+    await update.message.reply_text(f"Текущий THREAD_ID: {thread_id}")
 
 def main():
-    app = ApplicationBuilder().token("7464199250:AAHuudpzjsRuyryhNXntmCR8TV_umM2JzMI").build()
+    app = ApplicationBuilder().token(API_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("getchatid", get_chat_id))
+    app.add_handler(CommandHandler("getthreadid", get_thread_id))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, parse_message))
 
     app.run_polling()
