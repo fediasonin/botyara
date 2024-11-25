@@ -179,6 +179,7 @@ async def get_chat_id(update: Update, context):
     chat_id = update.message.chat_id
     await update.message.reply_text(f"Ваш chat ID: {chat_id}")
 
+
 async def get_thread_id(update: Update, context):
     thread_id = update.message.message_thread_id
     await update.message.reply_text(f"Текущий THREAD_ID: {thread_id}")
