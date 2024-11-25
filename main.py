@@ -123,7 +123,7 @@ async def parse_message(update: Update, context):
     thread_id = update.message.message_thread_id
     if chat_id == TARGET_CHAT_ID:
         return
-    if thread_id != TARGET_THREAD_ID and chat_id != MAIN_CHAT_ID:
+    if thread_id != TARGET_THREAD_ID:
         return
 
     subject = "Попытки подбора пароля"
