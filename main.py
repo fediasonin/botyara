@@ -168,11 +168,10 @@ async def parse_message(update: Update, context):
             send_email(email, subject, email_body)
             send_status += f"\nСообщение также отправлено на {email}."
         except Exception as e:
-            send_status += f"\nНе удалось отправить сообщение на {email}. Ошибка: {str(e)}"
-
+            send_status += f"\n❌ Не удалось отправить сообщение на {email}. Причина: {str(e)}"
         await update.message.reply_text(send_status)
     else:
-        await update.message.reply_text("Не удалось распознать сообщение. Проверьте формат.")
+        await update.message.reply_text("❌ Не удалось распознать сообщение. Проверьте формат.")
 
 
 async def get_chat_id(update: Update, context):

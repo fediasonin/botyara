@@ -1,4 +1,9 @@
 services:
-  bot:
+  botyara_bot:
     build: .
+    container_name: botyara_bot_1
     restart: always
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["python3", "main.py"]
